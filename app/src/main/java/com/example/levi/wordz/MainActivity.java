@@ -1,6 +1,7 @@
 package com.example.levi.wordz;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Layout;
@@ -10,6 +11,9 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +27,70 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         wordsToLookup = findViewById(R.id.wordsLayout);
+
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        Set<String> myWords = new HashSet<>();
+        Set<String> restoredText = prefs.getStringSet("List", myWords);
+        if (restoredText != null)
+        {
+            for(final String wordOrPhrase:restoredText){
+                Button newWordOrPhrase = new Button(this);
+                newWordOrPhrase.setOnClickListener( new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        addDesActivity(wordOrPhrase, scrollViewCount);
+                    }
+                });
+                newWordOrPhrase.setTransformationMethod(null);
+                newWordOrPhrase.setGravity(Gravity.LEFT);
+                newWordOrPhrase.setText(wordOrPhrase);
+
+                wordsToLookup.addView(newWordOrPhrase, scrollViewCount);
+                scrollViewCount += 1;
+            }
+        }
     }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        Set<String> myWords = new HashSet<String>();
+        for (int i = 0; i <= scrollViewCount - 1; i++) {
+            View child = wordsToLookup.getChildAt(i);
+            myWords.add(((Button) child).getText().toString());
+        }
+        editor.putStringSet("List", myWords);
+        editor.apply();
+    }
+
+    /*@Override
+    protected void onResume(){
+        super.onResume();
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        Set<String> myWords = new HashSet<>();
+        Set<String> restoredText = prefs.getStringSet("List", myWords);
+        if (restoredText != null)
+        {
+            for(final String wordOrPhrase:restoredText){
+                Button newWordOrPhrase = new Button(this);
+                newWordOrPhrase.setOnClickListener( new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        addDesActivity(wordOrPhrase, scrollViewCount);
+                    }
+                });
+                newWordOrPhrase.setTransformationMethod(null);
+                newWordOrPhrase.setGravity(Gravity.LEFT);
+                newWordOrPhrase.setText(wordOrPhrase);
+
+                wordsToLookup.addView(newWordOrPhrase, scrollViewCount);
+                scrollViewCount += 1;
+            }
+        }
+    }*/
 
     public void sendMessage(View v) {
         // Do something in response to button
