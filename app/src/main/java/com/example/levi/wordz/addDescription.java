@@ -13,7 +13,6 @@ public class addDescription extends AppCompatActivity {
     private int button;
     private TextView header;
     private TextView description;
-    private Button okayEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,19 +24,31 @@ public class addDescription extends AppCompatActivity {
 
         header = findViewById(R.id.headerTextView);
         description = findViewById(R.id.descriptionEditText);
-        okayEdit = findViewById(R.id.finishEdit);
         header.setText(wordOrPhrase);
     }
 
     public void sendMessage(View view) {
+        System.out.println("Attempting to remove " + wordOrPhrase + " after adding description");
         // Do something in response to button
         Intent delete = new Intent();
         delete.putExtra("deleteButton", button);
+        delete.putExtra("word", wordOrPhrase);
         setResult(RESULT_OK, delete);
+        finish();
 
+        //TODO: Properly remove word from MainActivity while still able to go to Collection and back to main
         Intent collectionActivity = new Intent(this, Collection.class);
         collectionActivity.putExtra("wordOrPhrase", wordOrPhrase);
         collectionActivity.putExtra("description", description.getText().toString());
         startActivity(collectionActivity);
+    }
+
+    public void deleteWord(View view){
+        System.out.println("Attempting to delete " + wordOrPhrase);
+        Intent delete = new Intent();
+        delete.putExtra("deleteButton", button);
+        delete.putExtra("word", wordOrPhrase);
+        setResult(RESULT_OK, delete);
+        finish();
     }
 }

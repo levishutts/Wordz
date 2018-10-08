@@ -1,3 +1,4 @@
+//TODO: Add capability to save and delete from collection
 package com.example.levi.wordz;
 
 import android.content.Intent;
