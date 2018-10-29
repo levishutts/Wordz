@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout wordsDisplay;
     private Set<String> savedWords;
-    private String savedNum;
+    //private String savedNum;
 
     private int scrollViewCount = 0;
 
@@ -28,11 +28,10 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         Set<String> myWords = new HashSet<>();
 
-        System.out.println(myWords);
         //ScrollView with LinearLayout to put buttons
         wordsDisplay = findViewById(R.id.wordsLayout);
         savedWords = prefs.getStringSet("savedWords", myWords);
-        savedNum = "00000";
+        //savedNum = prefs.getString("savedNum", savedNum);
         updateScrollView(savedWords);
     }
 
@@ -43,8 +42,12 @@ public class MainActivity extends AppCompatActivity {
         //Add a button for a successful return from addWords
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
-                String wordOrPhrase = savedNum + data.getStringExtra("wordOrPhrase");
-                updateSavedNum();
+                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                //savedNum = prefs.getString("savedNum", savedNum);
+                //System.out.println("From activity result " + savedNum);
+                String wordOrPhrase = data.getStringExtra("wordOrPhrase");
+                //String wordOrPhrase = savedNum + data.getStringExtra("wordOrPhrase");
+                //updateSavedNum();
                 SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
                 savedWords.add(wordOrPhrase);
                 editor.clear();
@@ -57,17 +60,26 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 2){
             if(resultCode == RESULT_OK){
                 //TODO: return with word and scrollview value to remove from restoredText
+                String delete = data.getStringExtra("word");
+                savedWords.remove(delete);
+                updateScrollView(savedWords);
+                SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+                editor.clear();
+                editor.putStringSet("savedWords", savedWords);
+                editor.commit();
                 //  clear, reset, and apply to editor
                 // MAKE SURE EDITOR IS CHANGING PREFS BEFORE ONRESUME!!!!!
             }
         }
     }
 
+    /*
     private void updateSavedNum(){
         Integer num = Integer.parseInt(savedNum);
         num += 1;
         savedNum = "0000" + num;
     }
+    */
 
     @Override
     protected void onResume(){
@@ -76,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         if(prefs != null){
             prefs.getStringSet("savedWords", savedWords);
-            prefs.getString("savedNum", savedNum);
-            System.out.println("From onResume " + savedWords);
+            //prefs.getString("savedNum", savedNum);
+            //System.out.println("From onResume " + savedNum);
             if(savedWords != null) {
                 updateScrollView(savedWords);
             }
@@ -87,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateScrollView(Set<String> savedWords){
         wordsDisplay.removeAllViews();
         scrollViewCount = 0;
-        System.out.println("From updateScrollView " + savedWords);
 
         for(final String wordOrPhrase:savedWords) {
             Button newWordOrPhrase = new Button(this);
@@ -110,9 +121,9 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        System.out.println("From onPause " + savedWords);
+        //System.out.println("From onPause " + savedNum);
         editor.putStringSet("savedWords", savedWords);
-        editor.putString("savedNum", savedNum);
+        //editor.putString("savedNum", savedNum);
         editor.apply();
     }
 
