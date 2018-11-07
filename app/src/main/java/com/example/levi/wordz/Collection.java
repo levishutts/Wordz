@@ -39,12 +39,7 @@ public class Collection extends AppCompatActivity {
         Set<String> myWords = new HashSet<>();
 
         //Load prefs
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        if(prefs != null){
-            myCollection = prefs.getStringSet("savedWords", myWords);
-            System.out.println("onCreate " + myCollection);
-            myCollection.add(wordOrPhrase + "\n" + description);
-        }
+
 
         updateCollection();
     }

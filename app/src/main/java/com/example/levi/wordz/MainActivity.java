@@ -1,7 +1,9 @@
 package com.example.levi.wordz;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -9,6 +11,17 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Button;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,10 +29,11 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout wordsDisplay;
     private Set<String> savedWords;
+    private String FILE_NAME = "mainWordz.txt";
+    private File mainWordz;
     //private String savedNum;
 
-    private int scrollViewCount = 0;
-
+    /*
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +48,17 @@ public class MainActivity extends AppCompatActivity {
         //savedNum = prefs.getString("savedNum", savedNum);
         updateScrollView(savedWords);
     }
+    */
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        //ScrollView with LinearLayout to put buttons
+        wordsDisplay = findViewById(R.id.wordsLayout);
+        //savedNum = prefs.getString("savedNum", savedNum);
+    }
 
     //Called after word added or description added
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -42,17 +67,19 @@ public class MainActivity extends AppCompatActivity {
         //Add a button for a successful return from addWords
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
-                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-                //savedNum = prefs.getString("savedNum", savedNum);
-                //System.out.println("From activity result " + savedNum);
-                String wordOrPhrase = data.getStringExtra("wordOrPhrase");
-                //String wordOrPhrase = savedNum + data.getStringExtra("wordOrPhrase");
-                //updateSavedNum();
-                SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-                savedWords.add(wordOrPhrase);
-                editor.clear();
-                editor.putStringSet("savedWords", savedWords);
-                editor.commit();
+                FileWriter fileWriter;
+                File mainWordz;
+                String line;
+                mainWordz = new File (getFilesDir(), FILE_NAME);
+                try {
+                    fileWriter = new FileWriter(mainWordz, true);
+                    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                    bufferedWriter.write(data.getStringExtra("wordOrPhrase"));
+                    bufferedWriter.close();
+                }
+                catch (IOException e){
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -62,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
                 //TODO: return with word and scrollview value to remove from restoredText
                 String delete = data.getStringExtra("word");
                 savedWords.remove(delete);
-                updateScrollView(savedWords);
                 SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
                 editor.clear();
                 editor.putStringSet("savedWords", savedWords);
@@ -84,18 +110,36 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        //Recover buttons from String Set and repopulate wordsDisplay
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        if(prefs != null){
-            prefs.getStringSet("savedWords", savedWords);
-            //prefs.getString("savedNum", savedNum);
-            //System.out.println("From onResume " + savedNum);
-            if(savedWords != null) {
-                updateScrollView(savedWords);
+        //Open and read mainWordz file to repopulate wordsDisplay
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(getFilesDir() + "/" + FILE_NAME));
+            String line;
+            wordsDisplay.removeAllViews();
+            int scrollViewCount = 0;
+            while((line = br.readLine()) != null){
+                final String words = line;
+                final int i = scrollViewCount;
+                Button newWordOrPhrase = new Button(this);
+                newWordOrPhrase.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        addDesActivity(words, i);
+                    }
+                });
+                newWordOrPhrase.setTransformationMethod(null);
+                newWordOrPhrase.setGravity(Gravity.LEFT);
+                newWordOrPhrase.setText(line);
+                wordsDisplay.addView(newWordOrPhrase, scrollViewCount);
+                scrollViewCount += 1;
             }
+            br.close();
+        }
+        catch (IOException e){
+            System.out.println("NO FILE TO READ");
         }
     }
 
+    /*
     private void updateScrollView(Set<String> savedWords){
         wordsDisplay.removeAllViews();
         scrollViewCount = 0;
@@ -115,16 +159,33 @@ public class MainActivity extends AppCompatActivity {
             scrollViewCount += 1;
         }
     }
+    */
 
     @Override
     protected void onPause(){
         super.onPause();
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        //System.out.println("From onPause " + savedNum);
-        editor.putStringSet("savedWords", savedWords);
-        //editor.putString("savedNum", savedNum);
-        editor.apply();
+        FileWriter fileWriter;
+        File mainWordz;
+        String line;
+        mainWordz = new File (getFilesDir(), FILE_NAME);
+        try {
+            fileWriter = new FileWriter(mainWordz);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+            for(int i = 0; i < wordsDisplay.getChildCount(); i++){
+                View v = wordsDisplay.getChildAt(i);
+                if(v instanceof Button){
+                    String word = ((Button) v).getText().toString();
+                    System.out.println("Wrote '" + word + i + "' to " + getFilesDir());
+                    line = ((Button) v).getText().toString() + "\n";
+                    bufferedWriter.write(line);
+                }
+            }
+            bufferedWriter.close();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     // Add button takes you to addWords activity
