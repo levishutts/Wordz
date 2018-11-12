@@ -14,6 +14,12 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +27,7 @@ public class Collection extends AppCompatActivity {
 
     private String wordOrPhrase;
     private String description;
+    private String FILE_NAME = "collectionWordz.txt";
     private LinearLayout collectionScroll;
     private Set<String> myCollection;
     private int scrollViewCount;
@@ -30,65 +37,76 @@ public class Collection extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collection);
         collectionScroll = findViewById(R.id.linearLayout);
+        scrollViewCount = 0;
 
-        //Get word data
-        Intent intent = getIntent();
-        wordOrPhrase = intent.getStringExtra("wordOrPhrase");
-        description = intent.getStringExtra("description");
+        //Load file and populate collectionView
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(getFilesDir() + "/" + FILE_NAME));
+            String line;
+            collectionScroll.removeAllViews();
+            int scrollViewCount = 0;
+            while((line = br.readLine()) != null){
+                TextView addToCollection = new TextView(this);
+                //int length = wordOrPhrase.length();
+                //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
 
-        Set<String> myWords = new HashSet<>();
+                //addToCollection.setText(ss1);
 
-        //Load prefs
-
-
-        updateCollection();
+                addToCollection.setText(line);
+                collectionScroll.addView(addToCollection, scrollViewCount);
+                scrollViewCount += 1;
+            }
+            br.close();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        //Recover buttons from String Set and repopulate wordsDisplay
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        if(prefs != null){
-            myCollection =  prefs.getStringSet("savedWords", myCollection);
-            System.out.println("onResume " + myCollection);
-            //prefs.getString("savedNum", savedNum);
-            //System.out.println("From onResume " + savedNum);
-            if(myCollection != null) {
-                updateCollection();
-            }
+        //If intent exists, add word and description to collectionScroll
+        //Get word data
+        Intent intent = getIntent();
+        if (intent != null){
+            wordOrPhrase = intent.getStringExtra("wordOrPhrase");
+            description = intent.getStringExtra("description");
         }
-    }
+        TextView addToCollection = new TextView(this);
+        //int length = wordOrPhrase.length();
+        //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
 
-    private void updateCollection(){
-        collectionScroll.removeAllViews();
-        scrollViewCount = 0;
+        //addToCollection.setText(ss1);
 
-        //SpannableString ss1=  new SpannableString(wordOrPhrase);
-
-        for(final String wordOrPhrase:myCollection) {
-            TextView addToCollection = new TextView(this);
-            //int length = wordOrPhrase.length();
-            //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
-
-            //addToCollection.setText(ss1);
-
-            addToCollection.setText(wordOrPhrase);
-            collectionScroll.addView(addToCollection, scrollViewCount);
-            scrollViewCount += 1;
-        }
+        addToCollection.setText(wordOrPhrase + ": " + description);
+        collectionScroll.addView(addToCollection, scrollViewCount);
+        scrollViewCount += 1;
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        //System.out.println("From onPause " + savedNum);
-        editor.putStringSet("savedWords", myCollection);
-        System.out.println("onPause " + myCollection);
-        //editor.putString("savedNum", savedNum);
-        editor.apply();
+        FileWriter fileWriter;
+        File mainWordz;
+        String line;
+        mainWordz = new File (getFilesDir(), FILE_NAME);
+        try {
+            fileWriter = new FileWriter(mainWordz);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+            for(int i = 0; i < collectionScroll.getChildCount(); i++){
+                View v = collectionScroll.getChildAt(i);
+                if(v instanceof TextView){
+                    line = ((TextView) v).getText().toString() + "\n";
+                    bufferedWriter.write(line);
+                }
+            }
+            bufferedWriter.close();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public void sendMessage(View view){

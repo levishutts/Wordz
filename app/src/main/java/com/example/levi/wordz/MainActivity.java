@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
             if(resultCode == RESULT_OK) {
                 FileWriter fileWriter;
                 File mainWordz;
-                String line;
                 mainWordz = new File (getFilesDir(), FILE_NAME);
                 try {
                     fileWriter = new FileWriter(mainWordz, true);
@@ -87,14 +86,30 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 2){
             if(resultCode == RESULT_OK){
                 //TODO: return with word and scrollview value to remove from restoredText
-                String delete = data.getStringExtra("word");
-                savedWords.remove(delete);
-                SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-                editor.clear();
-                editor.putStringSet("savedWords", savedWords);
-                editor.commit();
+                int delete = data.getExtras().getInt("deleteButton");
+                System.out.println("Removing " + wordsDisplay.getChildAt(delete));
+                wordsDisplay.removeViewAt(delete);
+                FileWriter fileWriter;
+                File mainWordz;
+                String line;
+                mainWordz = new File (getFilesDir(), FILE_NAME);
+                try {
+                    fileWriter = new FileWriter(mainWordz);
+                    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+                    for(int i = 0; i < wordsDisplay.getChildCount(); i++){
+                        View v = wordsDisplay.getChildAt(i);
+                        if(v instanceof Button){
+                            line = ((Button) v).getText().toString() + "\n";
+                            bufferedWriter.write(line);
+                        }
+                    }
+                    bufferedWriter.close();
+                }
+                catch (IOException e){
+                    e.printStackTrace();
+                }
                 //  clear, reset, and apply to editor
-                // MAKE SURE EDITOR IS CHANGING PREFS BEFORE ONRESUME!!!!!
             }
         }
     }
@@ -135,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
             br.close();
         }
         catch (IOException e){
-            System.out.println("NO FILE TO READ");
+            e.printStackTrace();
         }
     }
 
@@ -175,8 +190,6 @@ public class MainActivity extends AppCompatActivity {
             for(int i = 0; i < wordsDisplay.getChildCount(); i++){
                 View v = wordsDisplay.getChildAt(i);
                 if(v instanceof Button){
-                    String word = ((Button) v).getText().toString();
-                    System.out.println("Wrote '" + word + i + "' to " + getFilesDir());
                     line = ((Button) v).getText().toString() + "\n";
                     bufferedWriter.write(line);
                 }
