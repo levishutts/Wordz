@@ -69,19 +69,19 @@ public class Collection extends AppCompatActivity {
         //If intent exists, add word and description to collectionScroll
         //Get word data
         Intent intent = getIntent();
-        if (intent != null){
+        if((intent.getStringExtra("wordOrPhrase") != null) && (intent.getStringExtra("description") != null)){
             wordOrPhrase = intent.getStringExtra("wordOrPhrase");
             description = intent.getStringExtra("description");
+            TextView addToCollection = new TextView(this);
+            //int length = wordOrPhrase.length();
+            //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
+
+            //addToCollection.setText(ss1);
+
+            addToCollection.setText(wordOrPhrase + ": " + description);
+            collectionScroll.addView(addToCollection, scrollViewCount);
+            scrollViewCount += 1;
         }
-        TextView addToCollection = new TextView(this);
-        //int length = wordOrPhrase.length();
-        //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
-
-        //addToCollection.setText(ss1);
-
-        addToCollection.setText(wordOrPhrase + ": " + description);
-        collectionScroll.addView(addToCollection, scrollViewCount);
-        scrollViewCount += 1;
     }
 
     @Override
@@ -113,5 +113,9 @@ public class Collection extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    public void edit(View view){
+        System.out.println("Delete pressed");
     }
 }

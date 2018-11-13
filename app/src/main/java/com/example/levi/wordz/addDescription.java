@@ -35,17 +35,10 @@ public class addDescription extends AppCompatActivity {
     }
 
     public void sendMessage(View view) {
-        System.out.println("Attempting to remove " + wordOrPhrase + " after adding description");
-        // Do something in response to button
-
-        //TODO: Properly remove word from MainActivity while still able to go to Collection and back to main
-        Intent collectionActivity = new Intent(this, Collection.class);
-        collectionActivity.putExtra("wordOrPhrase", wordOrPhrase);
-        collectionActivity.putExtra("description", description.getText().toString());
-        startActivity(collectionActivity);
-
         Intent delete = new Intent();
         delete.putExtra("deleteButton", button);
+        delete.putExtra("wordOrPhrase", wordOrPhrase);
+        delete.putExtra("description", description.getText().toString());
         setResult(RESULT_OK, delete);
         finish();
     }

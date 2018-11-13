@@ -87,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
             if(resultCode == RESULT_OK){
                 //TODO: return with word and scrollview value to remove from restoredText
                 int delete = data.getExtras().getInt("deleteButton");
-                System.out.println("Removing " + wordsDisplay.getChildAt(delete));
                 wordsDisplay.removeViewAt(delete);
                 FileWriter fileWriter;
                 File mainWordz;
@@ -108,6 +107,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 catch (IOException e){
                     e.printStackTrace();
+                }
+                if ((data.getStringExtra("wordOrPhrase") != null) && (data.getStringExtra("description") != null)){
+                    //Start collection activity
+                    Intent collectionActivity = new Intent(this, Collection.class);
+                    collectionActivity.putExtra("wordOrPhrase", data.getStringExtra("wordOrPhrase"));
+                    collectionActivity.putExtra("description", data.getStringExtra("description"));
+                    startActivity(collectionActivity);
                 }
                 //  clear, reset, and apply to editor
             }
@@ -218,5 +224,11 @@ public class MainActivity extends AppCompatActivity {
         //Return after Done or Delete button are pressed to remove word/phrase from wordsDisplay
         //and Shared Preferences
         startActivityForResult(intent, 2);
+    }
+
+    public void collectionActivity(View v){
+        Intent intent = new Intent(this, Collection.class);
+        startActivity(intent);
+        finish();
     }
 }
