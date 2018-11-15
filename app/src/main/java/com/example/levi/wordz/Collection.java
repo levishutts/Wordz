@@ -3,16 +3,22 @@ package com.example.levi.wordz;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.RelativeLayout;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -29,6 +35,10 @@ public class Collection extends AppCompatActivity {
     private String description;
     private String FILE_NAME = "collectionWordz.txt";
     private LinearLayout collectionScroll;
+    private Button edit;
+    private Button delete;
+    private Button main;
+    private Button cancel;
     private Set<String> myCollection;
     private int scrollViewCount;
 
@@ -37,6 +47,12 @@ public class Collection extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collection);
         collectionScroll = findViewById(R.id.linearLayout);
+        edit = findViewById(R.id.edit);
+        delete = findViewById(R.id.delete);
+        main = findViewById(R.id.main);
+        cancel = findViewById(R.id.cancel);
+        delete.setVisibility(View.INVISIBLE);
+        cancel.setVisibility(View.INVISIBLE);
         scrollViewCount = 0;
 
         //Load file and populate collectionView
@@ -45,17 +61,21 @@ public class Collection extends AppCompatActivity {
             String line;
             collectionScroll.removeAllViews();
             int scrollViewCount = 0;
+
             while((line = br.readLine()) != null){
-                TextView addToCollection = new TextView(this);
+                CheckBox checkBox = new CheckBox(this);
                 //int length = wordOrPhrase.length();
                 //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
 
                 //addToCollection.setText(ss1);
 
-                addToCollection.setText(line);
-                collectionScroll.addView(addToCollection, scrollViewCount);
+                checkBox.setText(line);
+                collectionScroll.addView(checkBox, scrollViewCount);
                 scrollViewCount += 1;
+
             }
+
+            System.out.println(scrollViewCount);
             br.close();
         }
         catch (IOException e){
@@ -72,13 +92,13 @@ public class Collection extends AppCompatActivity {
         if((intent.getStringExtra("wordOrPhrase") != null) && (intent.getStringExtra("description") != null)){
             wordOrPhrase = intent.getStringExtra("wordOrPhrase");
             description = intent.getStringExtra("description");
-            TextView addToCollection = new TextView(this);
-            //int length = wordOrPhrase.length();
-            //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
+            CheckBox addToCollection = new CheckBox(this);
+            int length = wordOrPhrase.length();
+            SpannableString text = new SpannableString(wordOrPhrase + " " + description);
+            text.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
 
-            //addToCollection.setText(ss1);
+            addToCollection.setText(text);
 
-            addToCollection.setText(wordOrPhrase + ": " + description);
             collectionScroll.addView(addToCollection, scrollViewCount);
             scrollViewCount += 1;
         }
@@ -97,8 +117,8 @@ public class Collection extends AppCompatActivity {
 
             for(int i = 0; i < collectionScroll.getChildCount(); i++){
                 View v = collectionScroll.getChildAt(i);
-                if(v instanceof TextView){
-                    line = ((TextView) v).getText().toString() + "\n";
+                if(v instanceof CheckBox){
+                    line = ((CheckBox) v).getText().toString() + "\n";
                     bufferedWriter.write(line);
                 }
             }
@@ -116,6 +136,34 @@ public class Collection extends AppCompatActivity {
     }
 
     public void edit(View view){
-        System.out.println("Delete pressed");
+        edit.setVisibility(View.INVISIBLE);
+        delete.setVisibility(View.VISIBLE);
+        main.setVisibility(View.INVISIBLE);
+        cancel.setVisibility(View.VISIBLE);
+    }
+
+    public void delete(View view){
+        edit.setVisibility(View.VISIBLE);
+        delete.setVisibility(View.INVISIBLE);
+        main.setVisibility(View.VISIBLE);
+        cancel.setVisibility(View.INVISIBLE);
+        scrollViewCount = collectionScroll.getChildCount();
+        for(int i = 0; i < scrollViewCount; i++){
+            View v = collectionScroll.getChildAt(i);
+            if(v instanceof CheckBox){
+                CheckBox checkbox = ((CheckBox) v);
+                if (checkbox.isChecked()){
+                    collectionScroll.removeViewAt(i);
+                    i--;
+                }
+            }
+        }
+    }
+
+    public void cancel(View view){
+        edit.setVisibility(View.VISIBLE);
+        delete.setVisibility(View.INVISIBLE);
+        main.setVisibility(View.VISIBLE);
+        cancel.setVisibility(View.INVISIBLE);
     }
 }
