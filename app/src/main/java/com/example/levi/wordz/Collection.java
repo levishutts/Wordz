@@ -16,7 +16,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -39,7 +38,7 @@ public class Collection extends AppCompatActivity {
     private Button delete;
     private Button main;
     private Button cancel;
-    private Set<String> myCollection;
+    private int lastID;
     private int scrollViewCount;
 
     @Override
@@ -54,6 +53,7 @@ public class Collection extends AppCompatActivity {
         delete.setVisibility(View.INVISIBLE);
         cancel.setVisibility(View.INVISIBLE);
         scrollViewCount = 0;
+        lastID = 0;
 
         //Load file and populate collectionView
         try{
@@ -63,19 +63,20 @@ public class Collection extends AppCompatActivity {
             int scrollViewCount = 0;
 
             while((line = br.readLine()) != null){
-                CheckBox checkBox = new CheckBox(this);
+                HideableCheckbox hideableCheckbox = new HideableCheckbox(this);
+                hideableCheckbox.setId(lastID);
                 //int length = wordOrPhrase.length();
                 //ss1.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
 
                 //addToCollection.setText(ss1);
 
-                checkBox.setText(line);
-                collectionScroll.addView(checkBox, scrollViewCount);
-                scrollViewCount += 1;
+                hideableCheckbox.setText(line);
 
+                collectionScroll.addView(hideableCheckbox, scrollViewCount);
+                scrollViewCount += 1;
+                lastID += 1;
             }
 
-            System.out.println(scrollViewCount);
             br.close();
         }
         catch (IOException e){
@@ -92,9 +93,9 @@ public class Collection extends AppCompatActivity {
         if((intent.getStringExtra("wordOrPhrase") != null) && (intent.getStringExtra("description") != null)){
             wordOrPhrase = intent.getStringExtra("wordOrPhrase");
             description = intent.getStringExtra("description");
-            CheckBox addToCollection = new CheckBox(this);
+            HideableCheckbox addToCollection = new HideableCheckbox(this);
             int length = wordOrPhrase.length();
-            SpannableString text = new SpannableString(wordOrPhrase + " " + description);
+            SpannableString text = new SpannableString(wordOrPhrase + ": " + description);
             text.setSpan(new RelativeSizeSpan(2f), 0, length, 0); // set size
 
             addToCollection.setText(text);
@@ -117,8 +118,8 @@ public class Collection extends AppCompatActivity {
 
             for(int i = 0; i < collectionScroll.getChildCount(); i++){
                 View v = collectionScroll.getChildAt(i);
-                if(v instanceof CheckBox){
-                    line = ((CheckBox) v).getText().toString() + "\n";
+                if(v instanceof HideableCheckbox){
+                    line = ((HideableCheckbox) v).getText().toString() + "\n";
                     bufferedWriter.write(line);
                 }
             }
@@ -140,6 +141,14 @@ public class Collection extends AppCompatActivity {
         delete.setVisibility(View.VISIBLE);
         main.setVisibility(View.INVISIBLE);
         cancel.setVisibility(View.VISIBLE);
+        scrollViewCount = collectionScroll.getChildCount();
+        for(int i = 0; i < scrollViewCount; i++){
+            View v = collectionScroll.getChildAt(i);
+            if(v instanceof HideableCheckbox){
+                HideableCheckbox checkbox = ((HideableCheckbox) v);
+                checkbox.showCheckBox();
+            }
+        }
     }
 
     public void delete(View view){
@@ -150,12 +159,13 @@ public class Collection extends AppCompatActivity {
         scrollViewCount = collectionScroll.getChildCount();
         for(int i = 0; i < scrollViewCount; i++){
             View v = collectionScroll.getChildAt(i);
-            if(v instanceof CheckBox){
-                CheckBox checkbox = ((CheckBox) v);
+            if(v instanceof HideableCheckbox){
+                HideableCheckbox checkbox = ((HideableCheckbox) v);
                 if (checkbox.isChecked()){
                     collectionScroll.removeViewAt(i);
                     i--;
                 }
+                checkbox.hideCheckBox();
             }
         }
     }
@@ -165,5 +175,12 @@ public class Collection extends AppCompatActivity {
         delete.setVisibility(View.INVISIBLE);
         main.setVisibility(View.VISIBLE);
         cancel.setVisibility(View.INVISIBLE);
+        for(int i = 0; i < scrollViewCount; i++){
+            View v = collectionScroll.getChildAt(i);
+            if(v instanceof HideableCheckbox){
+                HideableCheckbox checkbox = ((HideableCheckbox) v);
+                checkbox.hideCheckBox();
+            }
+        }
     }
 }
